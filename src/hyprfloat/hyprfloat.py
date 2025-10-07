@@ -62,8 +62,18 @@ def handle_event(event, db):
 				focus = None
 
 			for window in workspace_windows:
-				if window['class'] in terminals and window['floating']:
+				if window['class'] in terminals \
+				and window['floating'] \
+				and window['address'] != focus:
 					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+					hyprctl(['dispatch', 'settiled'])
+			
+			if focus:
+				new_win = next((w for w in workspace_windows if w['address'] == focus), None)
+				if new_win and new_win['floating']:
+					hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
+					hyprctl(['dispatch', 'movewindow', 'r'])
+					hyprctl(['dispatch', 'focuswindow', f'address:{focus}']) # Focus window to tile to the right
 					hyprctl(['dispatch', 'settiled'])
 
 			hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
