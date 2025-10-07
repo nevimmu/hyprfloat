@@ -8,6 +8,7 @@ from .settings import CONF_DIR, SOCKET_PATH
 def handle_event(event, db):
 	if event.startswith('openwindow>>') \
 	or event.startswith('workspace>>') \
+	or event.startswith('changefloatingmode>>') \
 	or event.startswith('closewindow>>') \
 	or event.startswith('movewindow>>'):
 		terminals = db.get('terminal_classes')
@@ -20,8 +21,30 @@ def handle_event(event, db):
 		clients = json.loads(hyprctl(['clients', '-j']).stdout)
 		workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
 
+		if event.startswith('changefloatingmode>>'):
+			event_data = event.split('>>')[1]
+			window_address, float_mode = event_data.split(',')
+			float_mode = int(float_mode)
+			window = next(w for w in workspace_windows if w['address'] == f'0x{window_address}')
+
+			if not window:
+				return
+			
+			if window['class'] in terminals:
+				hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+				if not float_mode:
+					hyprctl(['dispatch', 'tagwindow', 'hyprfloat:False' ])
+				else:
+					hyprctl(['dispatch', 'tagwindow', '' ])
+			
+			return
+
+		
 		if len(workspace_windows) == 1:
 			window = workspace_windows[0]
+			if window['tags'] == ['hyprfloat:False']:
+				return
+
 			if window['class'] in terminals:
 				width = monitors[active_monitor]['width']
 				height = monitors[active_monitor]['height']
