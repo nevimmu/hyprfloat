@@ -13,11 +13,9 @@ $ pipx install .
 and add `exec-once = hyprfloat` to your `hyprland.conf`
 
 ## Configuration
-You can modify the terminals list and terminal width and height per monitors in `hyprfloat.json`
+You can modify the terminals list and terminal width and height per monitors in `~/.config/hyprfloat/hyprfloat.json`
 
 ```json
-// ~/.config/hyprfloat/hyprfloat.json
-
 {
 	"terminals":[
 		"kitty",
