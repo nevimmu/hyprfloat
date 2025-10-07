@@ -7,6 +7,7 @@ from .settings import CONF_DIR, SOCKET_PATH
 
 def handle_event(event, db):
 	if event.startswith('openwindow>>') \
+	or event.startswith('workspace>>') \
 	or event.startswith('closewindow>>') \
 	or event.startswith('movewindow>>'):
 		terminals = db.get('terminal_classes')
