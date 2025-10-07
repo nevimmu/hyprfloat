@@ -4,6 +4,12 @@ Float the terminal in empty workspace
 
 ## Installation and use
 
+### From the AUR
+```bash
+yay -S hyprfloat
+```
+
+### From source
 ```bash
 $ git clone https://github.com/nevimmu/hyprfloat
 $ cd hyprfloat
