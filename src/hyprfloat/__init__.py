@@ -1,0 +1,1 @@
+from .hyprfloat import main
