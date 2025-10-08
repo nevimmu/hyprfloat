@@ -40,6 +40,7 @@ def handle_event(event, db):
 				return
 
 		if event.startswith('closewindow>>'):
+			# TODO: do nothing if the closed window was floating
 			if data[0] in ADDRESS_TO_IGNORE:
 				ADDRESS_TO_IGNORE.remove(data[0])
 				return
@@ -92,7 +93,7 @@ def handle_event(event, db):
 			
 			if focus:
 				new_win = next((w for w in workspace_windows if w['address'] == focus), None)
-				if new_win and new_win['floating']:
+				if new_win and new_win['floating'] and new_win['class'] in terminals:
 					hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
 					hyprctl(['dispatch', 'movewindow', 'r'])
 					hyprctl(['dispatch', 'focuswindow', f'address:{focus}']) # Focus window to tile to the right
