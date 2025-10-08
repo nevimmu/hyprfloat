@@ -1,7 +1,27 @@
 import os
 import json
+import math
 from .settings import CONF_DIR
-from .utils import get_defaults
+
+def get_defaults():
+	'''Get a list of monitors with their size'''
+	from .utils import hyprctl
+	monitors_json = json.loads(hyprctl(['monitors', '-j']).stdout)
+
+	resize = 0.71
+	monitors = {}
+	for m in monitors_json:
+
+		transform = m['transform'] in [1, 3, 5, 7]
+		w = m['width'] if not transform else m['height']
+		h = m['height'] if not transform else m['width']
+
+		monitors[m['name']] = {
+			'width': math.ceil(w * resize),
+			'height': math.ceil(h * resize)
+		}
+	
+	return monitors
 
 class DbHelper():
 	'''
@@ -17,12 +37,10 @@ class DbHelper():
 			self.create_config()
 
 	def create_config(self):
-		config = {
+		self._write_config({
 			'terminal_classes': ['kitty', 'alacritty', 'org.kde.konsole', 'com.mitchellh.ghostty'],
 			'monitors': get_defaults(),
-		}
-
-		self._write_config(config)
+		})
 
 	def _read_config(self):
 		'''
