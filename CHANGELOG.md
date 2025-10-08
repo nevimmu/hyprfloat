@@ -1,3 +1,9 @@
+## 0.2.2 (2025-10-08)
+
+### Fix
+
+- **hyprfloat**: new floating window not in the list won't be tiled automaticaly
+
 ## 0.2.1 (2025-10-08)
 
 ### Fix
