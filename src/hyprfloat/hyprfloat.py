@@ -5,12 +5,18 @@ from .db_helper import DbHelper
 from .utils import hyprctl
 from .settings import CONF_DIR, SOCKET_PATH
 
+ADDRESS_TO_IGNORE = []
+
 def handle_event(event, db):
+	global ADDRESS_TO_IGNORE
+
 	if event.startswith('openwindow>>') \
 	or event.startswith('workspace>>') \
 	or event.startswith('changefloatingmode>>') \
 	or event.startswith('closewindow>>') \
 	or event.startswith('movewindow>>'):
+		event_data = event.split('>>')[1]
+
 		terminals = db.get('terminal_classes')
 		monitors = db.get('monitors')
 
@@ -21,11 +27,27 @@ def handle_event(event, db):
 		clients = json.loads(hyprctl(['clients', '-j']).stdout)
 		workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
 
+		try:
+			window_address = event_data.split(',')[0]
+			window = next(w for w in workspace_windows if w['address'] == f'0x{window_address}')
+		except:
+			window = None
+
+		data =  event_data.split(',')
+		if event.startswith('openwindow>>'):
+			if data[3] == '':
+				ADDRESS_TO_IGNORE.append(data[0])
+				return
+
+		if event.startswith('closewindow>>'):
+			if data[0] in ADDRESS_TO_IGNORE:
+				ADDRESS_TO_IGNORE.remove(data[0])
+				return
+
 		if event.startswith('changefloatingmode>>'):
 			event_data = event.split('>>')[1]
 			window_address, float_mode = event_data.split(',')
 			float_mode = int(float_mode)
-			window = next(w for w in workspace_windows if w['address'] == f'0x{window_address}')
 
 			if not window:
 				return
