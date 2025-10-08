@@ -1,3 +1,9 @@
+## 0.2.1 (2025-10-08)
+
+### Fix
+
+- **hyprfloat**: menu window are now ignored
+
 ## 0.2.0 (2025-10-07)
 
 ### Feat
