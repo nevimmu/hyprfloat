@@ -29,8 +29,7 @@ class Hyprfloat:
 
 	def handle_change_floating_mode(self, event_data, workspace_windows):
 		'''Handle the `changefloatingmode` event from Hyprland's socket.'''
-		window_address, float_mode = event_data.split(',')
-		float_mode = int(float_mode)
+		window_address, _ = event_data.split(',')
 
 		# Find the window that was changed.
 		try:
@@ -41,13 +40,7 @@ class Hyprfloat:
 		terminals = self.db.get('terminal_classes')
 		# If the window is a terminal, tag it.
 		if window['class'] in terminals:
-			hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
-			# If the window is not floating, tag it as not floating.
-			if not float_mode:
-				hyprctl(['dispatch', 'tagwindow', 'hyprfloat:False'])
-			# If the window is floating, remove the tag.
-			else:
-				hyprctl(['dispatch', 'tagwindow', ''])
+			hyprctl(['dispatch', 'tagwindow', 'hyprfloat:False'])
 
 	def handle_change(self, workspace_windows, active_monitor):
 		'''Handle the floating and tiling of windows.'''
