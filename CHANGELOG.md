@@ -1,3 +1,13 @@
+## 0.2.3 (2025-10-09)
+
+### Fix
+
+- properly tag the window when floating/tiling
+
+### Refactor
+
+- **hyprfloat**: main loop use a class, moved get_default to db_helper
+
 ## 0.2.2 (2025-10-08)
 
 ### Fix
