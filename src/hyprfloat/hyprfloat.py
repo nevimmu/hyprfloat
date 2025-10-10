@@ -51,7 +51,7 @@ class Hyprfloat:
 		if len(workspace_windows) == 1:
 			window = workspace_windows[0]
 			# If the window is tagged as not floating, do nothing.
-			if window['tags'] == ['hyprfloat:False']:
+			if 'hyprfloat:False' in window['tags']:
 				return
 
 			# If the window is not in the terminal list, do nothing.
@@ -128,6 +128,6 @@ def main():
 	with socket(AF_UNIX, SOCK_STREAM) as sock:
 		sock.connect(SOCKET_PATH)
 		while True:
-			event = sock.recv(1024).decode().strip()
+			event = sock.recv(1024).decode().strip().split('\n')[0]
 			if event:
 				hyprfloat.handle_event(event)
