@@ -1,3 +1,18 @@
+## 0.3.0 (2025-10-11)
+
+### Feat
+
+- added an option to offset the terminal
+- **hyprfloat**: add ignore_tiltle: window with a mathcing title will be ignored and not tiled
+
+### Fix
+
+- **hyprfloat**: fix issue where multiple events were taken at once instead of just one at a time
+
+### Refactor
+
+- **handle_change**: cleanup the logic
+
 ## 0.2.3 (2025-10-09)
 
 ### Fix
