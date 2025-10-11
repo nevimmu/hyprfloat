@@ -42,11 +42,12 @@ class Hyprfloat:
 		if window['class'] in terminals:
 			hyprctl(['dispatch', 'tagwindow', 'hyprfloat:False'])
 
-	def handle_change(self, workspace_windows, active_monitor):
+	def handle_change(self, workspace_windows, active_monitor, event_info=None):
 		'''Handle the floating and tiling of windows.'''
 		monitors = self.db.get('monitors')
 		terminals = self.db.get('terminal_classes')
 		ignore_titles = self.db.get('ignore_titles', [])
+		event_type, event_data = event_info if event_info else (None, None)
 
 		# If there is only one window in the workspace, float it.
 		if len(workspace_windows) == 1:
@@ -77,33 +78,20 @@ class Hyprfloat:
 			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
 		# If there are multiple windows in the workspace, tile them.
-		else:
-			active_window = hyprctl(['activewindow', '-j'])
+		elif len(workspace_windows) == 2 and event_type == 'openwindow':
+			event_data = event_info[1]
+			new_window_address = '0x' + event_data.split(',')[0]
 			try:
-				# Get the focused window.
-				focus = json.loads(active_window.stdout)['address']
-			except:
-				focus = None
-
-			# Tile all floating terminals.
-			for window in workspace_windows:
-				if window['class'] in terminals \
-				and window['floating'] \
-				and window['address'] != focus\
-				and window['title'] not in ignore_titles:
-					hyprctl(['dispatch', 'settiled', f'address:{window['address']}'])
-
-			# If there is a focused window, tile it.
-			if focus:
-				new_win = next((w for w in workspace_windows if w['address'] == focus), None)
-				# If the focused window is floating and in terminal list, tile it.
-				if new_win and new_win['floating'] \
-				and new_win['class'] in terminals\
-				and new_win['title'] not in ignore_titles:
-					hyprctl(['dispatch', 'settiled', f'address:{focus}'])
-
-			# Focus back the original window.
-			hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
+				new_window = next(w for w in workspace_windows if w['address'] == new_window_address)
+				existing_window = next(w for w in workspace_windows if w['address'] != new_window_address)
+			except StopIteration:
+				# If the window is not found, do nothing and let the default behavior handle it.
+				pass
+			else:
+				# Float the new window, tile the existing one, then tile the new one.
+				hyprctl(['dispatch', 'setfloating', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'settiled', f'address:{existing_window["address"]}'])
+				hyprctl(['dispatch', 'settiled', f'address:{new_window["address"]}'])
 
 	def handle_event(self, event):
 		'''Main event handler.'''
@@ -119,7 +107,7 @@ class Hyprfloat:
 		if event_type == 'openwindow':
 			if self.handle_open_window(event_data):
 				return
-			self.handle_change(workspace_windows, active_monitor)
+			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 		elif event_type == 'closewindow':
 			self.handle_close_window(event_data)
 			self.handle_change(workspace_windows, active_monitor)
