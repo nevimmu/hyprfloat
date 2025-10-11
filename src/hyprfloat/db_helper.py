@@ -43,6 +43,7 @@ class DbHelper():
 		'''Create the config file.'''
 		self._write_config({
 			'terminal_classes': ['kitty', 'alacritty', 'org.kde.konsole', 'com.mitchellh.ghostty'],
+			'ignore_titles': [],
 			'monitors': get_defaults(),
 		})
 
@@ -56,10 +57,13 @@ class DbHelper():
 		with open(self._conf_file, 'w') as f:
 			json.dump(config, f, indent='\t', separators=(',', ':'))
 
-	def get(self, source):
+	def get(self, source, default=None):
 		'''Retrieves a value from the config file.'''
 		data = self._read_config()
-		return data[source]
+		try:
+			return data[source]
+		except:
+			return default
 
 	def set(self, source, value):
 		'''Sets a value in the config file.'''

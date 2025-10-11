@@ -46,16 +46,20 @@ class Hyprfloat:
 		'''Handle the floating and tiling of windows.'''
 		monitors = self.db.get('monitors')
 		terminals = self.db.get('terminal_classes')
+		ignore_titles = self.db.get('ignore_titles', [])
 
 		# If there is only one window in the workspace, float it.
 		if len(workspace_windows) == 1:
 			window = workspace_windows[0]
 			# If the window is tagged as not floating, do nothing.
-			if window['tags'] == ['hyprfloat:False']:
+			if 'hyprfloat:False' in window['tags']:
 				return
 
 			# If the window is not in the terminal list, do nothing.
 			if window['class'] not in terminals:
+				return
+
+			if window['title'] in ignore_titles:
 				return
 
 			width = monitors[active_monitor]['width']
@@ -79,19 +83,20 @@ class Hyprfloat:
 
 			# Tile all floating terminals.
 			for window in workspace_windows:
-				if window['class'] in terminals and window['floating'] and window['address'] != focus:
-					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
-					hyprctl(['dispatch', 'settiled'])
+				if window['class'] in terminals \
+				and window['floating'] \
+				and window['address'] != focus\
+				and window['title'] not in ignore_titles:
+					hyprctl(['dispatch', 'settiled', f'address:{window['address']}'])
 
 			# If there is a focused window, tile it.
 			if focus:
 				new_win = next((w for w in workspace_windows if w['address'] == focus), None)
 				# If the focused window is floating and in terminal list, tile it.
-				if new_win and new_win['floating'] and new_win['class'] in terminals:
-					hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
-					hyprctl(['dispatch', 'movewindow', 'r'])
-					hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
-					hyprctl(['dispatch', 'settiled'])
+				if new_win and new_win['floating'] \
+				and new_win['class'] in terminals\
+				and new_win['title'] not in ignore_titles:
+					hyprctl(['dispatch', 'settiled', f'address:{focus}'])
 
 			# Focus back the original window.
 			hyprctl(['dispatch', 'focuswindow', f'address:{focus}'])
@@ -128,6 +133,6 @@ def main():
 	with socket(AF_UNIX, SOCK_STREAM) as sock:
 		sock.connect(SOCKET_PATH)
 		while True:
-			event = sock.recv(1024).decode().strip()
+			event = sock.recv(1024).decode().strip().split('\n')[0]
 			if event:
 				hyprfloat.handle_event(event)
