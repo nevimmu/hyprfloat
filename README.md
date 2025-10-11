@@ -24,6 +24,7 @@ You can modify the terminals list and terminal width and height per monitors in 
 - terminal_classes: list of the terminals (or any app really) you want to auto float/tile. Use the app class
 - ignore_titles: list of title that will be excluded. For example if you want your Cava that you spawn with that name not to float
 - monitors: your monitors and the width and height floating windows will take, that's where you can customize it
+ - offset: offset the floating window
 
 Example configuration:
 ```json
@@ -41,11 +42,13 @@ Example configuration:
 	"monitors":{
 		"HDMI-A-1":{
 			"width":767,
-			"height":1364
+			"height":1364,
+			"offset": [0, 0]
 		},
 		"DP-1":{
 			"width":1818,
-			"height":1023
+			"height":1023,
+			"offset": [0, 0]
 		}
 	}
 }

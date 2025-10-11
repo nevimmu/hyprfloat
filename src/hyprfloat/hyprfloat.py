@@ -64,6 +64,8 @@ class Hyprfloat:
 
 			width = monitors[active_monitor]['width']
 			height = monitors[active_monitor]['height']
+			offset = monitors[active_monitor]['offset']
+
 			hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
 			# If the window is not floating, float it.
 			if not window['floating']:
@@ -71,6 +73,8 @@ class Hyprfloat:
 			# Resize and center the window.
 			hyprctl(['dispatch', 'resizeactive', 'exact', str(width), str(height)])
 			hyprctl(['dispatch', 'centerwindow'])
+			# Offset the window if needed.
+			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
 		# If there are multiple windows in the workspace, tile them.
 		else:

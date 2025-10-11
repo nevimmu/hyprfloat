@@ -22,7 +22,8 @@ def get_defaults():
 		# Calculate the new size.
 		monitors[m['name']] = {
 			'width': math.ceil(w * resize),
-			'height': math.ceil(h * resize)
+			'height': math.ceil(h * resize),
+			'offset': [0, 0]
 		}
 	
 	return monitors
@@ -38,6 +39,17 @@ class DbHelper():
 		# If the config file doesn't exist, create it.
 		if not os.path.isfile(self._conf_file):
 			self.create_config()
+		else:
+			# Check if the config file needs to be updated.
+			config = self._read_config()
+			updated = False
+			for monitor in config['monitors'].values():
+				if 'offset' not in monitor:
+					monitor['offset'] = [0, 0]
+					updated = True
+			
+			if updated:
+				self._write_config(config)
 
 	def create_config(self):
 		'''Create the config file.'''
