@@ -13,9 +13,11 @@ class Hyprfloat:
 
 	def handle_open_window(self, event_data):
 		'''Handle the `openwindow` event from Hyprland's socket.'''
+		ignore_titles = self.db.get('ignore_titles', [])
 		data = event_data.split(',')
+
 		# If the window is a new window with empty title, add it to the ignore list.
-		if data[3] == '':
+		if data[3] == '' or data[3] in ignore_titles:
 			self.address_to_ignore.append(data[0])
 			return True
 		return False
