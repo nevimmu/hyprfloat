@@ -1,3 +1,9 @@
+## 0.3.1 (2025-10-14)
+
+### Fix
+
+- new window with a ignre_titles are now properly ignored
+
 ## 0.3.0 (2025-10-11)
 
 ### Feat
