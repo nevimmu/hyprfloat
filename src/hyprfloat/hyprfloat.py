@@ -79,13 +79,12 @@ class Hyprfloat:
 			height = monitors[active_monitor]['height']
 			offset = monitors[active_monitor]['offset']
 
-			hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
 			# If the window is not floating, float it.
 			if not window['floating']:
-				hyprctl(['dispatch', 'setfloating'])
+				hyprctl(['dispatch', 'setfloating', f'address:{window['address']}'])
 			# Resize and center the window.
-			hyprctl(['dispatch', 'resizeactive', 'exact', str(width), str(height)])
-			hyprctl(['dispatch', 'centerwindow'])
+			hyprctl(['dispatch', 'resizewindowpixel', 'exact', str(width), str(height), f',address:{window['address']}'])
+			hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
 			# Offset the window if needed.
 			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
@@ -127,7 +126,7 @@ class Hyprfloat:
 			self.handle_change(workspace_windows, active_monitor)
 		elif event_type == 'changefloatingmode':
 			self.handle_change_floating_mode(event_data, workspace_windows)
-		elif event_type in ('workspace', 'movewindow'):
+		elif event_type in ('workspace', 'movewindow', 'activewindow'):
 			self.handle_change(workspace_windows, active_monitor)
 
 def main():
