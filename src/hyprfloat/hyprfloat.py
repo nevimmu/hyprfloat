@@ -60,10 +60,11 @@ class Hyprfloat:
 		terminals = self.db.get('terminal_classes')
 		ignore_titles = self.db.get('ignore_titles', [])
 		event_type, event_data = event_info if event_info else (None, None)
+		visible_windows = [w for w in workspace_windows if not w['hidden']]
 
-		# If there is only one window in the workspace, float it.
-		if len(workspace_windows) == 1:
-			window = workspace_windows[0]
+		# If there is only one visible window in the workspace, float it.
+		if len(visible_windows) == 1:
+			window = visible_windows[0]
 			# If the window is tagged as not floating, do nothing.
 			if window['address'] in self.user_tiled_windows:
 				return
