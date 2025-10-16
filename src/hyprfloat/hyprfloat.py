@@ -102,8 +102,12 @@ class Hyprfloat:
 			else:
 				if existing_window['title'] in ignore_titles or new_window['title'] in ignore_titles:
 					return
-				# Float the new window, tile the existing one, then tile the new one.
+				# Float the new window, center it and move it to the right then
+				# tile the existing one, finally tile the new one.
 				hyprctl(['dispatch', 'setfloating', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'focuswindow', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'centerwindow', f',address:{new_window['address']}'])
+				hyprctl(['dispatch', 'movewindow', 'r'])
 				hyprctl(['dispatch', 'settiled', f'address:{existing_window["address"]}'])
 				hyprctl(['dispatch', 'settiled', f'address:{new_window["address"]}'])
 
