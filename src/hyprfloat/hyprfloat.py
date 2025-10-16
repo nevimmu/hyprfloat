@@ -109,7 +109,10 @@ class Hyprfloat:
 
 	def handle_event(self, event):
 		'''Main event handler.'''
-		event_type, event_data = event.split('>>', 1)
+		try:
+			event_type, event_data = event.split('>>', 1)
+		except:
+			return
 		# Get the current workspace and windows.
 		workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
 		workspace_id = workspace['id']
@@ -127,7 +130,7 @@ class Hyprfloat:
 			self.handle_change(workspace_windows, active_monitor)
 		elif event_type == 'changefloatingmode':
 			self.handle_change_floating_mode(event_data, workspace_windows)
-		elif event_type in ('workspace', 'movewindow', 'activewindow'):
+		elif event_type in ('workspace', 'movewindow', 'activewindow', 'windowtitle'):
 			self.handle_change(workspace_windows, active_monitor)
 
 def main():
