@@ -1,3 +1,12 @@
+## 0.3.2 (2025-10-16)
+
+### Fix
+
+- handle event parsing error and add support for window title changes
+- ensure only visible windows are considered for floating in handle_change
+- improve window management for window closing without a closewindow event
+- improve window handling logic for ignore and tiled states
+
 ## 0.3.1 (2025-10-14)
 
 ### Fix
