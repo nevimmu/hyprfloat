@@ -55,7 +55,7 @@ class DbHelper():
 		'''Create the config file.'''
 		self._write_config({
 			'terminal_classes': ['kitty', 'alacritty', 'org.kde.konsole', 'com.mitchellh.ghostty'],
-			'ignore_titles': [],
+			'ignore_titles': [r'notificationtoasts_\d+_desktop'],
 			'monitors': get_defaults(),
 		})
 

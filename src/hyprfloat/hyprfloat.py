@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from socket import socket, AF_UNIX, SOCK_STREAM
 from .db_helper import DbHelper
 from .utils import hyprctl
@@ -18,8 +19,11 @@ class Hyprfloat:
 		data = event_data.split(',')
 		address = f'0x{data[0]}'
 
+		data_empty = data[3] == ''
+		data_ignore = any(re.match(pattern, data[3]) for pattern in ignore_titles)
+
 		# If the window is a new window with empty title, add it to the ignore list.
-		if data[3] == '' or data[3] in ignore_titles:
+		if data_empty or data_ignore:
 			self.address_to_ignore.append(address)
 			return True
 		return False
@@ -123,6 +127,8 @@ class Hyprfloat:
 		active_monitor = workspace['monitor']
 		clients = json.loads(hyprctl(['clients', '-j']).stdout)
 		workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
+
+		print(f'Event: {event_type} >> {event_data}')
 
 		# Handle the event.
 		if event_type == 'openwindow':
