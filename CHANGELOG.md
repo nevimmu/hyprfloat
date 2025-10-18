@@ -1,3 +1,10 @@
+## 0.4.0 (2025-10-18)
+
+### Feat
+
+- added regex the the ignore_titles
+- new window will always tile to the right
+
 ## 0.3.2 (2025-10-16)
 
 ### Fix
