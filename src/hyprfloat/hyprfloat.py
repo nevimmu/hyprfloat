@@ -94,7 +94,7 @@ class Hyprfloat:
 			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
 		# If there are multiple windows in the workspace, tile them.
-		elif len(workspace_windows) == 2 and event_type == 'openwindow':
+		elif len(workspace_windows) >= 2 and event_type in {'openwindow', 'movewindow'}:
 			event_data = event_info[1]
 			new_window_address = '0x' + event_data.split(',')[0]
 			try:
@@ -109,11 +109,11 @@ class Hyprfloat:
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
 				hyprctl(['dispatch', 'setfloating', f'address:{new_window["address"]}'])
-				hyprctl(['dispatch', 'focuswindow', f'address:{new_window["address"]}'])
 				hyprctl(['dispatch', 'centerwindow', f',address:{new_window['address']}'])
 				hyprctl(['dispatch', 'movewindow', 'r'])
 				hyprctl(['dispatch', 'settiled', f'address:{existing_window["address"]}'])
-				hyprctl(['dispatch', 'settiled', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'focuswindow', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'settiled'])
 
 	def handle_event(self, event):
 		'''Main event handler.'''
@@ -128,8 +128,6 @@ class Hyprfloat:
 		clients = json.loads(hyprctl(['clients', '-j']).stdout)
 		workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
 
-		print(f'Event: {event_type} >> {event_data}')
-
 		# Handle the event.
 		if event_type == 'openwindow':
 			if self.handle_open_window(event_data):
@@ -137,11 +135,11 @@ class Hyprfloat:
 			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 		elif event_type == 'closewindow':
 			self.handle_close_window(event_data)
-			self.handle_change(workspace_windows, active_monitor)
+			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 		elif event_type == 'changefloatingmode':
 			self.handle_change_floating_mode(event_data, workspace_windows)
 		elif event_type in ('workspace', 'movewindow', 'activewindow', 'windowtitle'):
-			self.handle_change(workspace_windows, active_monitor)
+			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 
 def main():
 	'''Main function of the script.'''
@@ -154,4 +152,5 @@ def main():
 		while True:
 			event = sock.recv(1024).decode().strip().split('\n')[0]
 			if event:
+				print('------------')
 				hyprfloat.handle_event(event)
