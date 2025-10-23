@@ -104,7 +104,9 @@ class Hyprfloat:
 				# If the window is not found, do nothing and let the default behavior handle it.
 				pass
 			else:
-				if existing_window['title'] in ignore_titles or new_window['title'] in ignore_titles:
+				if existing_window['title'] in ignore_titles or \
+				new_window['title'] in ignore_titles or \
+				new_window['class'] not in terminals:
 					return
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
@@ -152,5 +154,4 @@ def main():
 		while True:
 			event = sock.recv(1024).decode().strip().split('\n')[0]
 			if event:
-				print('------------')
 				hyprfloat.handle_event(event)
