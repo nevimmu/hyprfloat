@@ -1,3 +1,10 @@
+## 0.4.1 (2025-10-23)
+
+### Fix
+
+- ignore new window if its class isn't in terminals
+- term windows properly tile when changing workspaces
+
 ## 0.4.0 (2025-10-18)
 
 ### Feat
