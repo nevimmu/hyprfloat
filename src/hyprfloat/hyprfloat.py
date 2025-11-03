@@ -108,8 +108,9 @@ class Hyprfloat:
 				pass
 			else:
 				if existing_window['title'] in ignore_titles or \
+				existing_window['class'] not in terminals or \
 				new_window['title'] in ignore_titles or \
-				new_window['class'] not in terminals:
+				new_window['floating'] == True:
 					return
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
