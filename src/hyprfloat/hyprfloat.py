@@ -15,7 +15,7 @@ class Hyprfloat:
 
 	def handle_open_window(self, event_data):
 		'''Handle the `openwindow` event from Hyprland's socket.'''
-		ignore_titles = self.db.get('ignore_titles', [])
+		ignore_titles = self.db.get('ignore_titles', []) or []
 		data = event_data.split(',')
 		address = f'0x{data[0]}'
 
@@ -48,7 +48,7 @@ class Hyprfloat:
 		except StopIteration:
 			return
 
-		terminals = self.db.get('terminal_classes')
+		terminals = self.db.get('terminal_classes') or []
 		# If the window is a terminal, add or remove it from the user_tiled_windows list.
 		if window['class'] in terminals:
 			if floating == '0':  # tiled
@@ -60,9 +60,9 @@ class Hyprfloat:
 
 	def handle_change(self, workspace_windows, active_monitor, event_info=None):
 		'''Handle the floating and tiling of windows.'''
-		monitors = self.db.get('monitors')
-		terminals = self.db.get('terminal_classes')
-		ignore_titles = self.db.get('ignore_titles', [])
+		monitors = self.db.get('monitors') or {}
+		terminals = self.db.get('terminal_classes') or []
+		ignore_titles = self.db.get('ignore_titles', []) or []
 		event_type, event_data = event_info if event_info else (None, None)
 		visible_windows = [w for w in workspace_windows if not w['hidden']]
 
@@ -80,6 +80,10 @@ class Hyprfloat:
 			if window['title'] in ignore_titles:
 				return
 
+			# Check if monitor configuration exists
+			if active_monitor not in monitors:
+				return
+
 			width = monitors[active_monitor]['width']
 			height = monitors[active_monitor]['height']
 			offset = monitors[active_monitor]['offset']
@@ -94,8 +98,7 @@ class Hyprfloat:
 			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
 		# If there are multiple windows in the workspace, tile them.
-		elif len(workspace_windows) >= 2 and event_type in {'openwindow', 'movewindow'}:
-			event_data = event_info[1]
+		elif len(workspace_windows) >= 2 and event_type in {'openwindow', 'movewindow'} and event_data:
 			new_window_address = '0x' + event_data.split(',')[0]
 			try:
 				new_window = next(w for w in workspace_windows if w['address'] == new_window_address)
@@ -105,8 +108,10 @@ class Hyprfloat:
 				pass
 			else:
 				if existing_window['title'] in ignore_titles or \
+				existing_window['class'] not in terminals or \
 				new_window['title'] in ignore_titles or \
-				new_window['class'] not in terminals:
+				new_window['floating'] == True and \
+				event_type != 'movewindow':
 					return
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
