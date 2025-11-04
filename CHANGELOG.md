@@ -1,3 +1,11 @@
+## 0.4.2 (2025-11-04)
+
+### Fix
+
+- properly tile a term when moving it to a different workspace
+- add better to logic to handle menu and not tile them
+- ensure fallback values for environment variables and database queries
+
 ## 0.4.1 (2025-10-23)
 
 ### Fix
