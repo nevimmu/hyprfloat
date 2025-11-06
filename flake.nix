@@ -69,6 +69,7 @@
 					];
 					
 					shellHook = ''
+						export PATH="$HOME/.local/bin:$PATH"
 						echo "Hyprfloat development environment"
 						echo "Run 'pipx install -e .' to install in development mode"
 					'';
