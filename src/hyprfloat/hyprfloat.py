@@ -107,28 +107,35 @@ class Hyprfloat:
 				# If the window is not found, do nothing and let the default behavior handle it.
 				pass
 			else:
-				if existing_window['title'] in ignore_titles or \
-				existing_window['class'] not in terminals or \
-				new_window['title'] in ignore_titles or \
-				new_window['floating'] == True and \
-				event_type != 'movewindow':
+				if (
+					existing_window['title'] in ignore_titles or
+					new_window['title'] in ignore_titles or
+					(new_window['floating'] == True and event_type != 'movewindow')
+				):
 					return
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
-				hyprctl(['dispatch', 'setfloating', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'setfloating', f'address:{new_window['address']}'])
 				hyprctl(['dispatch', 'centerwindow', f',address:{new_window['address']}'])
 				hyprctl(['dispatch', 'movewindow', 'r'])
-				hyprctl(['dispatch', 'settiled', f'address:{existing_window["address"]}'])
-				hyprctl(['dispatch', 'focuswindow', f'address:{new_window["address"]}'])
+				hyprctl(['dispatch', 'settiled', f'address:{existing_window['address']}'])
+				hyprctl(['dispatch', 'focuswindow', f'address:{new_window['address']}'])
 				hyprctl(['dispatch', 'settiled'])
 
 		elif len(visible_windows) >= 2 and event_type == 'workspace':
 			# On workspace change, ensure all floating terminal windows are tiled.
-			for window in workspace_windows:
-				if window['class'] in terminals and \
-				window['floating'] and \
-				window['address'] not in self.user_tiled_windows:
-					hyprctl(['dispatch', 'settiled', f'address:{window["address"]}'])	
+			# Prioritize by focus history to tile the most recently focused windows first.
+			for window in sorted(workspace_windows, key=lambda w: w['focusHistoryID'], reverse=True):
+				if (
+					window['class'] in terminals and
+					window['floating'] and
+					window['address'] not in self.user_tiled_windows
+				):
+					hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
+					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+					hyprctl(['dispatch', 'movewindow', 'r'])
+					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+					hyprctl(['dispatch', 'settiled'])
 
 	def handle_event(self, event):
 		'''Main event handler.'''
