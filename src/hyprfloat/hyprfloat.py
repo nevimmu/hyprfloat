@@ -122,6 +122,14 @@ class Hyprfloat:
 				hyprctl(['dispatch', 'focuswindow', f'address:{new_window["address"]}'])
 				hyprctl(['dispatch', 'settiled'])
 
+		elif len(visible_windows) >= 2 and event_type == 'workspace':
+			# On workspace change, ensure all floating terminal windows are tiled.
+			for window in workspace_windows:
+				if window['class'] in terminals and \
+				window['floating'] and \
+				window['address'] not in self.user_tiled_windows:
+					hyprctl(['dispatch', 'settiled', f'address:{window["address"]}'])	
+
 	def handle_event(self, event):
 		'''Main event handler.'''
 		try:
