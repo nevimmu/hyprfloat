@@ -64,10 +64,12 @@
 					buildInputs = with pkgs; [
 						python3
 						python3Packages.setuptools
+						commitizen
 						pipx
 					];
 					
 					shellHook = ''
+						export PATH="$HOME/.local/bin:$PATH"
 						echo "Hyprfloat development environment"
 						echo "Run 'pipx install -e .' to install in development mode"
 					'';
