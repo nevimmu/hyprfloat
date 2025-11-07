@@ -31,5 +31,6 @@ version_provider = "pep621"
 update_changelog_on_bump = true
 major_version_zero = true
 version_files = [
-	'src/hyprfloat/settings.py'
+	'src/hyprfloat/settings.py',
+	'flake.nix'
 ]
