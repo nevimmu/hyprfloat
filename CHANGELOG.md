@@ -1,3 +1,13 @@
+## 0.4.3 (2025-11-07)
+
+### Fix
+
+- switching to a workspace now trigger the term tilling
+
+### Refactor
+
+- improve window handling logic for floating and tiling
+
 ## 0.4.2 (2025-11-04)
 
 ### Fix
