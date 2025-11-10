@@ -98,7 +98,9 @@ class Hyprfloat:
 			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
 
 		# If there are multiple windows in the workspace, tile them.
-		elif len(workspace_windows) >= 2 and event_type in {'openwindow', 'movewindow'} and event_data:
+		# Only trigger auto-tiling for openwindow events (new windows)
+		# Do NOT trigger for movewindow events (user manually moving windows)
+		elif len(workspace_windows) >= 2 and event_type == 'openwindow' and event_data:
 			new_window_address = '0x' + event_data.split(',')[0]
 			try:
 				new_window = next(w for w in workspace_windows if w['address'] == new_window_address)
@@ -122,8 +124,8 @@ class Hyprfloat:
 				hyprctl(['dispatch', 'focuswindow', f'address:{new_window['address']}'])
 				hyprctl(['dispatch', 'settiled'])
 
-		elif len(visible_windows) >= 2 and event_type == 'workspace':
-			# On workspace change, ensure all floating terminal windows are tiled.
+		elif len(visible_windows) >= 2 and event_type in ('workspace', 'movewindow'):
+			# On workspace change or window move, ensure all floating terminal windows are tiled.
 			# Prioritize by focus history to tile the most recently focused windows first.
 			for window in sorted(workspace_windows, key=lambda w: w['focusHistoryID'], reverse=True):
 				if (
@@ -143,12 +145,49 @@ class Hyprfloat:
 			event_type, event_data = event.split('>>', 1)
 		except:
 			return
-		# Get the current workspace and windows.
-		workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
-		workspace_id = workspace['id']
-		active_monitor = workspace['monitor']
-		clients = json.loads(hyprctl(['clients', '-j']).stdout)
-		workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
+		
+		print(f'Event: {event_type}, Data: {event_data}')
+		
+		# For movewindow events, determine the target workspace from the event data
+		if event_type == 'movewindow':
+			# movewindow format: address,workspace_id
+			moved_window_address = '0x' + event_data.split(',')[0]
+			target_workspace_id = int(event_data.split(',')[1])
+			clients = json.loads(hyprctl(['clients', '-j']).stdout)
+			
+			# Find which workspace the window came from (before the move)
+			source_workspace_id = None
+			for client in clients:
+				if client['address'] == moved_window_address:
+					# After the move, the window is already in the target workspace
+					# So we need to check all workspaces except the target to find affected workspaces
+					break
+			
+			# Get windows for the target workspace
+			target_workspace_windows = [c for c in clients if c['workspace']['id'] == target_workspace_id]
+			
+			# Get the monitor for the target workspace
+			workspaces = json.loads(hyprctl(['workspaces', '-j']).stdout)
+			target_workspace = next((w for w in workspaces if w['id'] == target_workspace_id), None)
+			target_monitor = target_workspace['monitor'] if target_workspace else None
+			
+			# Handle the target workspace
+			self.handle_change(target_workspace_windows, target_monitor, (event_type, event_data))
+			
+			# Also check the active workspace (source) - it might now have only 1 window left
+			active_workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
+			if active_workspace['id'] != target_workspace_id:
+				source_workspace_windows = [c for c in clients if c['workspace']['id'] == active_workspace['id']]
+				self.handle_change(source_workspace_windows, active_workspace['monitor'], (event_type, event_data))
+			
+			return
+		else:
+			# Get the current workspace and windows.
+			workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
+			workspace_id = workspace['id']
+			active_monitor = workspace['monitor']
+			clients = json.loads(hyprctl(['clients', '-j']).stdout)
+			workspace_windows = [c for c in clients if c['workspace']['id'] == workspace_id]
 
 		# Handle the event.
 		if event_type == 'openwindow':
