@@ -1,3 +1,10 @@
+## 0.4.4 (2025-11-14)
+
+### Fix
+
+- enhance window management during movewindow events and track previous workspace
+- moving window to another monitor with movewindow won't snap back the window to the original monitor
+
 ## 0.4.3 (2025-11-07)
 
 ### Fix
