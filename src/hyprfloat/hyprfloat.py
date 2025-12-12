@@ -101,7 +101,7 @@ class Hyprfloat:
 		# If there are multiple windows in the workspace, tile them.
 		# Only trigger auto-tiling for openwindow events (new windows)
 		# Do NOT trigger for movewindow events (user manually moving windows)
-		elif len(workspace_windows) >= 2 and event_type == 'openwindow' and event_data:
+		elif len(workspace_windows) >= 2 and event_type in ('openwindow', 'urgent') and event_data:
 			new_window_address = '0x' + event_data.split(',')[0]
 			try:
 				new_window = next(w for w in workspace_windows if w['address'] == new_window_address)
@@ -231,7 +231,7 @@ class Hyprfloat:
 			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 		elif event_type == 'changefloatingmode':
 			self.handle_change_floating_mode(event_data, workspace_windows)
-		elif event_type in ('workspace', 'movewindow', 'activewindow', 'windowtitle'):
+		elif event_type in ('workspace', 'movewindow', 'activewindow', 'windowtitle', 'urgent'):
 			self.handle_change(workspace_windows, active_monitor, (event_type, event_data))
 
 def main():
