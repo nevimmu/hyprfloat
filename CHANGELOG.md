@@ -1,3 +1,11 @@
+## 0.4.5 (2025-12-12)
+
+### Fix
+
+- handle window opening without a windowopen event type using urgent type instead
+- removed handle_change on move window as it's not necessary and added a bug
+- moving window to a workspace now respect the ignore rules
+
 ## 0.4.4 (2025-11-14)
 
 ### Fix
