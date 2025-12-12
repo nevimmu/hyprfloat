@@ -21,7 +21,7 @@ class Hyprfloat:
 		address = f'0x{data[0]}'
 
 		data_empty = data[3] == ''
-		data_ignore = any(re.match(pattern, data[3]) for pattern in ignore_titles)
+		data_ignore = any(re.search(pattern, data[3]) for pattern in ignore_titles)
 
 		# If the window is a new window with empty title, add it to the ignore list.
 		if data_empty or data_ignore:
@@ -78,7 +78,7 @@ class Hyprfloat:
 			if window['class'] not in terminals:
 				return
 
-			if window['title'] in ignore_titles:
+			if any(re.search(pattern, window['title']) for pattern in ignore_titles):
 				return
 
 			# Check if monitor configuration exists
@@ -138,7 +138,8 @@ class Hyprfloat:
 				if (
 					window['class'] in terminals and
 					window['floating'] and
-					window['address'] not in self.user_tiled_windows
+					window['address'] not in self.user_tiled_windows and
+					not any(re.search(pattern, window['title']) for pattern in ignore_titles)
 				):
 					hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
 					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
@@ -171,13 +172,17 @@ class Hyprfloat:
 			target_workspace_id = int(event_data.split(',')[1])
 			clients = json.loads(hyprctl(['clients', '-j']).stdout)
 			
-			# Find which workspace the window came from (before the move)
-			source_workspace_id = None
+			# Find the moved window and check if it should be ignored
+			ignore_titles = self.db.get('ignore_titles', []) or []
+			moved_window = None
 			for client in clients:
 				if client['address'] == moved_window_address:
-					# After the move, the window is already in the target workspace
-					# So we need to check all workspaces except the target to find affected workspaces
+					moved_window = client
 					break
+
+			# If the moved window has an ignored title, don't process the move
+			if moved_window and any(re.search(pattern, moved_window['title']) for pattern in ignore_titles):
+				return
 			
 			# Get windows for the target workspace
 			target_workspace_windows = [c for c in clients if c['workspace']['id'] == target_workspace_id]
@@ -186,9 +191,6 @@ class Hyprfloat:
 			workspaces = json.loads(hyprctl(['workspaces', '-j']).stdout)
 			target_workspace = next((w for w in workspaces if w['id'] == target_workspace_id), None)
 			target_monitor = target_workspace['monitor'] if target_workspace else None
-			
-			# Handle the target workspace
-			self.handle_change(target_workspace_windows, target_monitor, (event_type, event_data))
 			
 			# Also check the active workspace (source) - it might now have only 1 window left
 			active_workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
