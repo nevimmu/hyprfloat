@@ -192,9 +192,6 @@ class Hyprfloat:
 			target_workspace = next((w for w in workspaces if w['id'] == target_workspace_id), None)
 			target_monitor = target_workspace['monitor'] if target_workspace else None
 			
-			# Handle the target workspace
-			self.handle_change(target_workspace_windows, target_monitor, (event_type, event_data))
-			
 			# Also check the active workspace (source) - it might now have only 1 window left
 			active_workspace = json.loads(hyprctl(['activeworkspace', '-j']).stdout)
 			if active_workspace['id'] != target_workspace_id:
