@@ -1,6 +1,6 @@
 import os
 
-__version__ = '0.4.5'
+__version__ = '0.5.0'
 
 HOME = os.getenv('HOME', os.getenv('USERPROFILE')) or os.path.expanduser('~')
 XDG_CONF_DIR = os.getenv('XDG_CONFIG_HOME', os.path.join(HOME, '.config'))
