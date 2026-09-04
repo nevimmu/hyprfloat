@@ -88,15 +88,38 @@ class Hyprfloat:
 			width = monitors[active_monitor]['width']
 			height = monitors[active_monitor]['height']
 			offset = monitors[active_monitor]['offset']
+			address = window['address']
 
 			# If the window is not floating, float it.
 			if not window['floating']:
-				hyprctl(['dispatch', 'setfloating', f'address:{window['address']}'])
-			# Resize and center the window.
-			hyprctl(['dispatch', 'resizewindowpixel', 'exact', str(width), str(height), f',address:{window['address']}'])
-			hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
+				# hyprctl(['dispatch', 'setfloating', f'address:{window['address']}']) Deprecated Call
+
+				hyprctl(['dispatch', f'hl.dsp.window.float{{action = "enable", window = "address:{address}"}}'])
+
+				# 'hl.dsp.window.float{ action = "enable", window = "address:0x559896e6cd30" }'
+				# hl.dsp.window.float({ action = "toggle" }))
+
+			# Deprecated Calls
+			"""	hyprctl(['dispatch', 'resizewindowpixel', 'exact', str(width), str(height), f',address:{window['address']}'])
+				hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
+				hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
+			"""
+
+
+			# Resize the window
+			hyprctl(['dispatch', f'hl.dsp.window.resize({{x = {width}, y= {height}, window = "address:{address}"}})'])
+				# hl.dsp.window.resize({ x, y, relative?, window? })
+				# hyprctl dispatch 'hl.dsp.window.resize({ x = 500, y = 400, window = "address:0x559896e6c3b0" })'
+
+			# Center the window
+			hyprctl(['dispatch', f'gl.dsp.window.center({{"address:{address}"}})'])
+				# hl.dsp.window.center({ "address:0x00" })
+
+
 			# Offset the window if needed.
-			hyprctl(['dispatch', 'movewindowpixel', str(offset[0]), str(offset[1]), f',address:{window['address']}'])
+			hyprctl(['dispatch', f'hl.dsp.window.move({{x= {offset[0]}, y = {offset[1]}, window = "address:{address}}})'])
+				# hl.dsp.window.move({ x, y, relative?, window? })
+
 
 		# If there are multiple windows in the workspace, tile them.
 		# Only trigger auto-tiling for openwindow events (new windows)
@@ -118,12 +141,31 @@ class Hyprfloat:
 					return
 				# Float the new window, center it and move it to the right then
 				# tile the existing one, finally tile the new one.
-				hyprctl(['dispatch', 'setfloating', f'address:{new_window['address']}'])
-				hyprctl(['dispatch', 'centerwindow', f',address:{new_window['address']}'])
-				hyprctl(['dispatch', 'movewindow', 'r'])
-				hyprctl(['dispatch', 'settiled', f'address:{existing_window['address']}'])
-				hyprctl(['dispatch', 'focuswindow', f'address:{new_window['address']}'])
-				hyprctl(['dispatch', 'settiled'])
+
+				# Deprecated dispatch calls
+				""" hyprctl(['dispatch', 'setfloating', f'address:{new_window['address']}'])
+					hyprctl(['dispatch', 'centerwindow', f',address:{new_window['address']}'])
+					hyprctl(['dispatch', 'movewindow', 'r'])
+					hyprctl(['dispatch', 'settiled', f'address:{existing_window['address']}'])
+					hyprctl(['dispatch', 'focuswindow', f'address:{new_window['address']}'])
+					hyprctl(['dispatch', 'settiled']) """
+
+				new_address = new_window['address']
+				hyprctl(['dispatch', f'hl.dsp.window.float{{action = "enable", window = "address:{new_address}"}}'])
+				hyprctl(['dispatch', f'hl.dsp.window.center({{"address:{new_address}"}})'])
+				# Don't know what the old one did so change if you do
+				hyprctl(['dispatch', f'hl.dsp.window.move({{direction = "r", window = "address:{new_address}"}})'])
+				hyprctl(['dispatch', f'hl.dsp.window.float{{action = "disable", window = "address:{existing_window['address']}"}}'])
+				hyprctl(['dispatch', f'hl.dsp.window.focus{{window = "address:{new_address}"}}'])
+				# hyprctl(['dispatch', 'settiled']) what is this fore i dont know but i think tiling the new window
+				hyprctl(['dispatch', f'hl.dsp.window.float{{action = "disable", window = "address:{new_address}"}}'])
+
+				
+
+
+
+				# 
+
 
 		elif len(visible_windows) >= 2 and event_type in ('workspace', 'movewindow'):
 			# On workspace change or window move, ensure all floating terminal windows are tiled.
@@ -141,11 +183,22 @@ class Hyprfloat:
 					window['address'] not in self.user_tiled_windows and
 					not any(re.search(pattern, window['title']) for pattern in ignore_titles)
 				):
-					hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
-					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
-					hyprctl(['dispatch', 'movewindow', 'r'])
-					hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
-					hyprctl(['dispatch', 'settiled'])
+					# Deprecated dispatch calls
+					""" hyprctl(['dispatch', 'centerwindow', f',address:{window['address']}'])
+						hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+						hyprctl(['dispatch', 'movewindow', 'r'])
+						hyprctl(['dispatch', 'focuswindow', f'address:{window['address']}'])
+						hyprctl(['dispatch', 'settiled']) """
+
+
+					address = window['address']
+					hyprctl(['dispatch', f'hl.dsp.window.center({{"address:{address}"}})'])
+					hyprctl(['dispatch', f'hl.dsp.window.focus{{window = "address:{address}"}}'])
+					hyprctl(['dispatch', f'hl.dsp.window.move({{direction = "r"}})'])
+					hyprctl(['dispatch', f'hl.dsp.window.focus{{window = "address:{address}"}}'])
+					hyprctl(['dispatch', f'hl.dsp.window.float({{action = "disable"}})'])
+
+
 			
 			# If this is a movewindow event, position the moved window on the right
 			if moved_window_address:
@@ -153,8 +206,12 @@ class Hyprfloat:
 					moved_window = next(w for w in workspace_windows if w['address'] == moved_window_address)
 					# Only reposition if the moved window is now tiled (not floating)
 					if not moved_window['floating']:
-						hyprctl(['dispatch', 'focuswindow', f'address:{moved_window_address}'])
-						hyprctl(['dispatch', 'movewindow', 'r'])
+						# Depercated dispatch calls 
+							# hyprctl(['dispatch', 'focuswindow', f'address:{moved_window_address}'])
+							# hyprctl(['dispatch', 'movewindow', 'r'])
+						hyprctl(['dispatch', f'hl.dsp.window.focus({{window = "address:{moved_window_address}"}})'])
+						hyprctl(['dispatch', f'hl.dsp.window.move({{direction = "r"}})'])
+
 				except StopIteration:
 					pass
 
@@ -164,7 +221,8 @@ class Hyprfloat:
 			event_type, event_data = event.split('>>', 1)
 		except:
 			return
-		
+
+
 		# For movewindow events, determine the target workspace from the event data
 		if event_type == 'movewindow':
 			# movewindow format: address,workspace_id
